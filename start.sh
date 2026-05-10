@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+echo "Pulling latest code..."
+git pull --rebase origin master
+
 echo "Building m3u-player image..."
 docker build -t m3u-player .
 
