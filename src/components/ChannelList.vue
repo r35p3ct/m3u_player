@@ -65,8 +65,8 @@ const selectChannel = (channel: Channel) => {
 const scrollToLive = () => {
   nextTick(() => {
     const activeEl = document.querySelector('.channel-item.active') as HTMLElement
-    if (activeEl && listRef.value) {
-      listRef.value.scrollTop = activeEl.offsetTop - 100
+    if (activeEl) {
+      activeEl.scrollIntoView({ behavior: 'auto', block: 'center' })
     }
   })
 }
