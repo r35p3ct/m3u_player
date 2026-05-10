@@ -25,10 +25,10 @@ const todayPrograms = computed(() => {
   
   const now = new Date()
   const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000)
+  const endWindow = new Date(now.getTime() + 12 * 60 * 60 * 1000)
   
   return programs
-    .filter(p => p.end >= startOfDay && p.start < endOfDay)
+    .filter(p => p.end >= startOfDay && p.start < endWindow)
     .sort((a, b) => a.start.getTime() - b.start.getTime())
 })
 
