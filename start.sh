@@ -2,8 +2,13 @@
 set -e
 
 echo "Pulling latest code..."
-git fetch origin
-git reset --hard origin/master
+if git pull --rebase origin master; then
+    echo "Git pull OK"
+else
+    echo "Git pull failed, forcing hard reset..."
+    git fetch origin
+    git reset --hard origin/master
+fi
 
 echo "Building m3u-player image..."
 docker build -t m3u-player .
