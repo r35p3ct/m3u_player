@@ -6,6 +6,7 @@ const path = require('path')
 
 const app = express()
 const PORT = process.env.PORT || 3010
+const BASE_PATH = (process.env.BASE_PATH || '').replace(/\/$/, '')
 
 // CORS для всех ответов
 app.use((req, res, next) => {
@@ -37,7 +38,7 @@ function rewriteM3U8(body, baseUrl) {
     if (!/^https?:\/\//i.test(line)) {
       absolute = resolveUrl(baseUrl, line)
     }
-    out.push('/proxy?url=' + encodeURIComponent(absolute))
+    out.push(BASE_PATH + '/proxy?url=' + encodeURIComponent(absolute))
   }
   return out.join('\n')
 }

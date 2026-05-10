@@ -16,6 +16,7 @@ echo "Starting new container..."
 docker run -d \
   --name m3u-player \
   --restart unless-stopped \
+  -e BASE_PATH=/m3u-player \
   -p 127.0.0.1:3010:3010 \
   m3u-player
 
