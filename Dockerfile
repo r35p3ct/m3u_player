@@ -2,9 +2,8 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Копируем package.json и ставим только production-зависимости (express и т.д.)
-COPY package.json ./
-RUN npm install --production
+# Устанавливаем только express (для server.cjs)
+RUN npm install express
 
 # Копируем сервер и собранный фронт
 COPY server.cjs ./
