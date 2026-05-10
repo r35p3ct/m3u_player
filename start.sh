@@ -2,7 +2,8 @@
 set -e
 
 echo "Pulling latest code..."
-git pull --rebase origin master
+git fetch origin
+git reset --hard origin/master
 
 echo "Building m3u-player image..."
 docker build -t m3u-player .
