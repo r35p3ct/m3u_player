@@ -33,7 +33,6 @@ function rewriteM3U8(body, baseUrl) {
       out.push(line)
       continue
     }
-    // Если строка выглядит как URI (не тег EXT-X)
     let absolute = line
     if (!/^https?:\/\//i.test(line)) {
       absolute = resolveUrl(baseUrl, line)
@@ -53,30 +52,27 @@ function isM3U8Response(proxyRes, url) {
          pathName.endsWith('.m3u')
 }
 
-// Прокси для внешних URL
-app.use('/proxy', (req, res) => {
-  const targetUrl = req.query.url
-  if (!targetUrl) return res.status(400).send('Missing url parameter')
-
+// Рекурсивно следуем за редиректами (max 5)
+function followProxy(targetUrl, reqHeaders, maxRedirects, callback) {
   let url
   try {
     url = new URL(targetUrl)
-  } catch {
-    return res.status(400).send('Invalid url parameter')
+  } catch (e) {
+    return callback(e)
   }
 
   const client = url.protocol === 'https:' ? https : http
   const isM3U8Request =
     url.pathname.endsWith('.m3u8') ||
     url.pathname.endsWith('.m3u') ||
-    (req.headers.accept || '').toLowerCase().includes('mpegurl')
+    (reqHeaders.accept || '').toLowerCase().includes('mpegurl')
 
   const options = {
     hostname: url.hostname,
     port: url.port || (url.protocol === 'https:' ? 443 : 80),
     path: url.pathname + url.search,
-    method: req.method,
-    headers: { ...req.headers, host: url.host },
+    method: 'GET',
+    headers: { ...reqHeaders, host: url.host },
   }
 
   delete options.headers['origin']
@@ -84,13 +80,36 @@ app.use('/proxy', (req, res) => {
   delete options.headers['connection']
   delete options.headers['upgrade-insecure-requests']
 
-  // Для m3u8 не запрашиваем gzip — нам нужен plain text для рерайта
   if (isM3U8Request) {
     delete options.headers['accept-encoding']
   }
 
   const proxyReq = client.request(options, (proxyRes) => {
-    const shouldRewrite = isM3U8Response(proxyRes, url) && proxyRes.statusCode >= 200 && proxyRes.statusCode < 300
+    if ([301, 302, 303, 307, 308].includes(proxyRes.statusCode) && proxyRes.headers.location && maxRedirects > 0) {
+      const redirectUrl = resolveUrl(targetUrl, proxyRes.headers.location)
+      console.log('Redirect:', targetUrl, '->', redirectUrl)
+      return followProxy(redirectUrl, reqHeaders, maxRedirects - 1, callback)
+    }
+    callback(null, proxyRes, targetUrl)
+  })
+
+  proxyReq.on('error', (err) => callback(err))
+  proxyReq.end()
+}
+
+// Прокси для внешних URL
+app.use('/proxy', (req, res) => {
+  const targetUrl = req.query.url
+  if (!targetUrl) return res.status(400).send('Missing url parameter')
+
+  followProxy(targetUrl, req.headers, 5, (err, proxyRes, finalUrl) => {
+    if (err) {
+      console.error('Proxy error:', err.message, 'for', targetUrl)
+      return res.status(502).send('Proxy error: ' + err.message)
+    }
+
+    const finalUrlObj = new URL(finalUrl)
+    const shouldRewrite = isM3U8Response(proxyRes, finalUrlObj) && proxyRes.statusCode >= 200 && proxyRes.statusCode < 300
 
     if (shouldRewrite) {
       let body = ''
@@ -103,7 +122,7 @@ app.use('/proxy', (req, res) => {
           if (value !== undefined) res.setHeader(key, value)
         })
         res.setHeader('content-type', 'application/vnd.apple.mpegurl')
-        res.send(rewriteM3U8(body, targetUrl))
+        res.send(rewriteM3U8(body, finalUrl))
       })
       proxyRes.on('error', (err) => {
         console.error('M3U8 read error:', err.message)
@@ -119,13 +138,6 @@ app.use('/proxy', (req, res) => {
     })
     proxyRes.pipe(res)
   })
-
-  proxyReq.on('error', (err) => {
-    console.error('Proxy error:', err.message, 'for', targetUrl)
-    res.status(502).send('Proxy error: ' + err.message)
-  })
-
-  req.pipe(proxyReq)
 })
 
 // Статика из dist/
