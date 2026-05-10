@@ -76,9 +76,10 @@ function followProxy(targetUrl, reqHeaders, maxRedirects, callback) {
   }
 
   delete options.headers['origin']
-  delete options.headers['referer']
   delete options.headers['connection']
   delete options.headers['upgrade-insecure-requests']
+  // Подменяем referer на origin потока — многие IPTV-серверы требуют правильный referer
+  options.headers['referer'] = url.origin + '/'
 
   if (isM3U8Request) {
     delete options.headers['accept-encoding']
@@ -102,11 +103,15 @@ app.use('/proxy', (req, res) => {
   const targetUrl = req.query.url
   if (!targetUrl) return res.status(400).send('Missing url parameter')
 
+  console.log('Proxy request:', targetUrl)
   followProxy(targetUrl, req.headers, 5, (err, proxyRes, finalUrl) => {
     if (err) {
       console.error('Proxy error:', err.message, 'for', targetUrl)
       return res.status(502).send('Proxy error: ' + err.message)
     }
+
+    const ct = proxyRes.headers['content-type'] || 'unknown'
+    console.log('Proxy response:', proxyRes.statusCode, ct, finalUrl)
 
     const finalUrlObj = new URL(finalUrl)
     const shouldRewrite = isM3U8Response(proxyRes, finalUrlObj) && proxyRes.statusCode >= 200 && proxyRes.statusCode < 300
