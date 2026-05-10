@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  m3u-player:
+    build: .
+    container_name: m3u-player
+    restart: unless-stopped
+    # Порт 3000 доступен только с localhost (через nginx)
+    ports:
+      - "127.0.0.1:3000:3000"

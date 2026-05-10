@@ -1,0 +1,4 @@
+node_modules/
+.ai/
+.idea/
+chrome-mcp.log

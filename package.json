@@ -1,0 +1,26 @@
+{
+  "name": "m3u-player",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "hls.js": "^1.5.7",
+    "mpegts.js": "^1.8.0",
+    "pinia": "^2.1.7",
+    "vue": "^3.4.21",
+    "vue-router": "^4.3.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.4",
+    "chrome-devtools-mcp": "^0.25.0",
+    "typescript": "^5.4.2",
+    "vite": "8.0.5",
+    "vue-tsc": "^2.0.6"
+  }
+}
