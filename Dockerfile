@@ -10,6 +10,6 @@ RUN npm install --production
 COPY server.cjs ./
 COPY dist/ ./dist/
 
-EXPOSE 3000
+EXPOSE 3010
 
 CMD ["node", "server.cjs"]

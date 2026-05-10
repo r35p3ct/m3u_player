@@ -5,6 +5,6 @@ services:
     build: .
     container_name: m3u-player
     restart: unless-stopped
-    # Порт 3000 доступен только с localhost (через nginx)
+    # Порт 3010 доступен только с localhost (через nginx)
     ports:
-      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:3010:3010"

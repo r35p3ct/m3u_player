@@ -5,7 +5,7 @@ const { URL } = require('url')
 const path = require('path')
 
 const app = express()
-const PORT = process.env.PORT || 3000
+const PORT = process.env.PORT || 3010
 
 // CORS для всех ответов
 app.use((req, res, next) => {
