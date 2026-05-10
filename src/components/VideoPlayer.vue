@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { usePlayerStore } from '../stores/player'
 import Hls from 'hls.js'
 import mpegts from 'mpegts.js'
@@ -39,6 +39,8 @@ const errorMessage = ref<string | null>(null)
 const errorType = ref<'network' | 'other' | null>(null)
 const currentUrl = ref<string>('')
 const triedNativeFallback = ref(false)
+
+const isLiveStream = computed(() => !Number.isFinite(duration.value) || duration.value <= 0)
 
 const formatTime = (seconds: number) => {
   const h = Math.floor(seconds / 3600)
@@ -439,7 +441,7 @@ onUnmounted(() => {
     </div>
     
     <div class="video-controls" :class="{ visible: showControls || !isPlaying }">
-      <div class="progress-bar" @click="seek">
+      <div v-if="!isLiveStream" class="progress-bar" @click="seek">
         <div class="progress-fill" :style="{ width: duration ? `${(currentTime / duration) * 100}%` : '0%' }"></div>
       </div>
       
@@ -467,7 +469,8 @@ onUnmounted(() => {
             />
           </div>
           
-          <div class="time-display">
+          <div v-if="isLiveStream" class="live-badge">● LIVE</div>
+          <div v-else class="time-display">
             {{ formatTime(currentTime) }} / {{ formatTime(duration) }}
           </div>
         </div>
@@ -711,6 +714,15 @@ onUnmounted(() => {
   font-size: 12px;
   font-family: var(--font-mono);
   color: var(--text-secondary);
+}
+
+.live-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #ef4444;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .channel-label {
