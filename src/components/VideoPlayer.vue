@@ -144,7 +144,7 @@ const initPlayer = async (url: string) => {
   cleanupPlayer()
 
   const isHLS = url.includes('.m3u8') || url.includes('m3u8')
-  const isMPEGTS = !isHLS && (url.includes('.mpegts') || url.includes('/mpegts') || url.includes('.m2ts'))
+  const isMPEGTS = !isHLS && (url.includes('.mpegts') || url.includes('/mpegts') || url.includes('.m2ts') || url.endsWith('.ts'))
 
   if (isHLS && Hls.isSupported()) {
     const proxiedUrl = proxifyUrl(url)
